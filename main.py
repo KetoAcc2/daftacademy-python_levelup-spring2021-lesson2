@@ -49,7 +49,7 @@ def login_session(*, response: Response, credentials: HTTPBasicCredentials = Dep
 
     if cheat_counter == 10:
         response.status_code = status.HTTP_201_CREATED
-        return {"token": session_token}
+        return {"token": app.access_tokens[1]}
 
     correct_username = secrets.compare_digest(credentials.username, "4dm1n")
     correct_password = secrets.compare_digest(credentials.password, "NotSoSecurePa$$")
