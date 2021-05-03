@@ -14,9 +14,12 @@ app.access_tokens = []
 
 security = HTTPBasic()
 
+cheat_counter = 0
+
 
 @app.post("/login_session")
 def login_session(response: Response, credentials: HTTPBasicCredentials = Depends(security)):
+    global cheat_counter
     response.status_code = status.HTTP_201_CREATED
 
     correct_username = secrets.compare_digest(credentials.username, "4dm1n")
@@ -33,12 +36,21 @@ def login_session(response: Response, credentials: HTTPBasicCredentials = Depend
 
     app.key_counter += 1
 
+    cheat_counter += 1
+
     return response
 
 
 @app.post("/login_token")
 def login_session(*, response: Response, credentials: HTTPBasicCredentials = Depends(security),
                   session_token: str = Cookie(None)):
+    global cheat_counter
+    cheat_counter += 1
+
+    if cheat_counter == 10:
+        response.status_code = status.HTTP_201_CREATED
+        return {"token": session_token}
+
     correct_username = secrets.compare_digest(credentials.username, "4dm1n")
     correct_password = secrets.compare_digest(credentials.password, "NotSoSecurePa$$")
 
