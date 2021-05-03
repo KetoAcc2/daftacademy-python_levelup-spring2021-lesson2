@@ -54,11 +54,7 @@ def login_session(*, response: Response, credentials: HTTPBasicCredentials = Dep
     correct_username = secrets.compare_digest(credentials.username, "4dm1n")
     correct_password = secrets.compare_digest(credentials.password, "NotSoSecurePa$$")
 
-    if not (correct_username and correct_password):
-        response.status_code = status.HTTP_401_UNAUTHORIZED
-        return response
-
-    if session_token in app.access_tokens:
+    if correct_username and correct_password:
         app.secret_key += str(app.key_counter)
         preparing_session_token = sha256(f"{correct_username}{correct_password}{app.secret_key}".encode()).hexdigest()
         app.access_tokens.append(preparing_session_token)
@@ -66,6 +62,10 @@ def login_session(*, response: Response, credentials: HTTPBasicCredentials = Dep
 
         app.key_counter += 1
 
+        response.status_code = status.HTTP_201_CREATED
+        return {"token": preparing_session_token}
+
+    if session_token in app.access_tokens:
         response.status_code = status.HTTP_201_CREATED
         return {"token": session_token}
     else:
