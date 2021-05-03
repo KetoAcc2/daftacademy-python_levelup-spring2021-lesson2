@@ -11,7 +11,7 @@ app.access_tokens = []
 
 
 class Data(BaseModel):
-    user: str
+    login: str
     password: str
 
 
@@ -19,12 +19,12 @@ class Data(BaseModel):
 def login_session(data: Data, response: Response):
     response.status_code = status.HTTP_201_CREATED
 
-    if data.user is None or data.user != '4dm1n' or\
+    if data.login is None or data.login != '4dm1n' or\
             data.password is None or data.password != 'NotSoSecurePa$$':
         response.status_code = status.HTTP_401_UNAUTHORIZED
         return response
 
-    session_token = sha256(f"{data.user}{data.password}{app.secret_key}".encode()).hexdigest()
+    session_token = sha256(f"{data.login}{data.password}{app.secret_key}".encode()).hexdigest()
     app.access_tokens.append(session_token)
     response.set_cookie(key="session_token", value=session_token)
 
@@ -35,12 +35,12 @@ def login_session(data: Data, response: Response):
 def login_session(data: Data, response: Response):
     response.status_code = status.HTTP_201_CREATED
 
-    if data.user is None or data.user != '4dm1n' or\
+    if data.login is None or data.login != '4dm1n' or\
             data.password is None or data.password != 'NotSoSecurePa$$':
         response.status_code = status.HTTP_401_UNAUTHORIZED
         return response
 
-    session_token = sha256(f"{data.user}{data.password}{app.secret_key}".encode()).hexdigest()
+    session_token = sha256(f"{data.login}{data.password}{app.secret_key}".encode()).hexdigest()
     app.access_tokens.append(session_token)
     response.set_cookie(key="session_token", value=session_token)
 
