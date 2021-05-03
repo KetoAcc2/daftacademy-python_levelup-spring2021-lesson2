@@ -37,7 +37,7 @@ def login_session(response: Response, credentials: HTTPBasicCredentials = Depend
 
 
 @app.post("/login_token")
-def login_session(response: Response, credentials: HTTPBasicCredentials = Depends(security),
+def login_session(*, response: Response, credentials: HTTPBasicCredentials = Depends(security),
                   session_token: str = Cookie(None)):
     correct_username = secrets.compare_digest(credentials.username, "4dm1n")
     correct_password = secrets.compare_digest(credentials.password, "NotSoSecurePa$$")
