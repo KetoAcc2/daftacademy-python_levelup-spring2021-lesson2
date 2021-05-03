@@ -9,6 +9,7 @@ from fastapi.security import HTTPBasic, HTTPBasicCredentials
 app = FastAPI()
 
 app.secret_key = "very constant and random secret, best 64+ characters, I love elephants and bananas"
+app.key_counter = 1
 app.access_tokens = []
 
 security = HTTPBasic()
@@ -25,9 +26,12 @@ def login_session(response: Response, credentials: HTTPBasicCredentials = Depend
         response.status_code = status.HTTP_401_UNAUTHORIZED
         return response
 
+    app.secret_key += str(app.key_counter)
     session_token = sha256(f"{correct_username}{correct_password}{app.secret_key}".encode()).hexdigest()
     app.access_tokens.append(session_token)
     response.set_cookie(key="session_token", value=session_token)
+
+    app.key_counter += 1
 
     return response
 
