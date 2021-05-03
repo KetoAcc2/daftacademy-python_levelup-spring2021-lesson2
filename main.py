@@ -13,19 +13,19 @@ app.session_token = str()
 
 class Data(BaseModel):
     login: str
-    password: str
+    haslo: str
 
 
 @app.post("/login_session")
-def login_session(data: Data, response: Response):
+def login_session(*, data: Data, response: Response):
     response.status_code = status.HTTP_201_CREATED
 
     if data.login is None or data.login != '4dm1n' or\
-            data.password is None or data.password != 'NotSoSecurePa$$':
+            data.haslo is None or data.haslo != 'NotSoSecurePa$$':
         response.status_code = status.HTTP_401_UNAUTHORIZED
         return response
 
-    session_token = sha256(f"{data.login}{data.password}{app.secret_key}".encode()).hexdigest()
+    session_token = sha256(f"{data.login}{data.haslo}{app.secret_key}".encode()).hexdigest()
     app.access_tokens.append(session_token)
     app.session_token = session_token
     response.set_cookie(key="session_token", value=session_token)
@@ -34,11 +34,11 @@ def login_session(data: Data, response: Response):
 
 
 @app.post("/login_token")
-def login_session(data: Data, response: Response, request: Request):
+def login_session(*, data: Data, response: Response, request: Request):
     response.status_code = status.HTTP_201_CREATED
 
     if data.login is None or data.login != '4dm1n' or\
-            data.password is None or data.password != 'NotSoSecurePa$$':
+            data.haslo is None or data.haslo != 'NotSoSecurePa$$':
         response.status_code = status.HTTP_401_UNAUTHORIZED
         return response
 
