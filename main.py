@@ -2,7 +2,7 @@ import secrets
 from hashlib import sha256
 
 import uvicorn
-from fastapi import FastAPI, Response, status, Request, Depends
+from fastapi import FastAPI, Response, status, Request, Depends, Cookie
 from pydantic import BaseModel
 from fastapi.security import HTTPBasic, HTTPBasicCredentials
 
@@ -37,7 +37,8 @@ def login_session(response: Response, credentials: HTTPBasicCredentials = Depend
 
 
 @app.post("/login_token")
-def login_session(response: Response, request: Request, credentials: HTTPBasicCredentials = Depends(security)):
+def login_session(response: Response, credentials: HTTPBasicCredentials = Depends(security),
+                  session_token: str = Cookie(None)):
     correct_username = secrets.compare_digest(credentials.username, "4dm1n")
     correct_password = secrets.compare_digest(credentials.password, "NotSoSecurePa$$")
 
@@ -45,7 +46,6 @@ def login_session(response: Response, request: Request, credentials: HTTPBasicCr
         response.status_code = status.HTTP_401_UNAUTHORIZED
         return response
 
-    session_token = request.cookies['session_token']
     if session_token == saved_session_token:
         response.status_code = status.HTTP_201_CREATED
         return {"token": session_token}
