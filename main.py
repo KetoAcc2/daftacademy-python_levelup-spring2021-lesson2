@@ -15,7 +15,7 @@ app.access_tokens = []
 security = HTTPBasic()
 
 
-@app.post("/login_session")
+@app.post("/login_session/")
 def login_session(response: Response, credentials: HTTPBasicCredentials = Depends(security)):
     response.status_code = status.HTTP_201_CREATED
 
@@ -36,7 +36,7 @@ def login_session(response: Response, credentials: HTTPBasicCredentials = Depend
     return response
 
 
-@app.post("/login_token")
+@app.get("/login_token/")
 def login_session(*, response: Response, credentials: HTTPBasicCredentials = Depends(security),
                   session_token: str = Cookie(None)):
     correct_username = secrets.compare_digest(credentials.username, "4dm1n")
