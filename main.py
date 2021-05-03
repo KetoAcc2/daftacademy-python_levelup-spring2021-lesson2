@@ -10,13 +10,15 @@ app = FastAPI()
 
 app.secret_key = "very constant and random secret, best 64+ characters, I love elephants and bananas"
 app.access_tokens = []
-app.session_token = str()
+
+saved_session_token = str()
 
 security = HTTPBasic()
 
 
 @app.post("/login_session")
 def login_session(response: Response, credentials: HTTPBasicCredentials = Depends(security)):
+    global saved_session_token
     response.status_code = status.HTTP_201_CREATED
 
     correct_username = secrets.compare_digest(credentials.username, "4dm1n")
@@ -28,7 +30,7 @@ def login_session(response: Response, credentials: HTTPBasicCredentials = Depend
 
     session_token = sha256(f"{correct_username}{correct_password}{app.secret_key}".encode()).hexdigest()
     app.access_tokens.append(session_token)
-    app.session_token = session_token
+    saved_session_token = session_token
     response.set_cookie(key="session_token", value=session_token)
 
     return response
@@ -44,7 +46,7 @@ def login_session(response: Response, request: Request, credentials: HTTPBasicCr
         return response
 
     session_token = request.cookies['session_token']
-    if session_token == app.session_token:
+    if session_token == saved_session_token:
         response.status_code = status.HTTP_201_CREATED
         return {"token": session_token}
 
