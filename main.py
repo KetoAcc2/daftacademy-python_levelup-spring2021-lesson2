@@ -11,14 +11,11 @@ app = FastAPI()
 app.secret_key = "very constant and random secret, best 64+ characters, I love elephants and bananas"
 app.access_tokens = []
 
-saved_session_token = str()
-
 security = HTTPBasic()
 
 
 @app.post("/login_session")
 def login_session(response: Response, credentials: HTTPBasicCredentials = Depends(security)):
-    global saved_session_token
     response.status_code = status.HTTP_201_CREATED
 
     correct_username = secrets.compare_digest(credentials.username, "4dm1n")
@@ -30,7 +27,6 @@ def login_session(response: Response, credentials: HTTPBasicCredentials = Depend
 
     session_token = sha256(f"{correct_username}{correct_password}{app.secret_key}".encode()).hexdigest()
     app.access_tokens.append(session_token)
-    saved_session_token = session_token
     response.set_cookie(key="session_token", value=session_token)
 
     return response
@@ -46,12 +42,12 @@ def login_session(response: Response, credentials: HTTPBasicCredentials = Depend
         response.status_code = status.HTTP_401_UNAUTHORIZED
         return response
 
-    if session_token == saved_session_token:
+    if session_token in app.access_tokens:
         response.status_code = status.HTTP_201_CREATED
         return {"token": session_token}
-
-    response.status_code = status.HTTP_401_UNAUTHORIZED
-    return response
+    else:
+        response.status_code = status.HTTP_401_UNAUTHORIZED
+        return response
 
 
 if __name__ == "__main__":
