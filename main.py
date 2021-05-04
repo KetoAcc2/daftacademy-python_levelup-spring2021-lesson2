@@ -17,15 +17,7 @@ security = HTTPBasic()
 
 
 @app.get("/welcome_session")
-def welcome_session(response: Response, format: str = None, session_token: str = Cookie(None),
-                    credentials: HTTPBasicCredentials = Depends(security)):
-    correct_username = secrets.compare_digest(credentials.username, "4dm1n")
-    correct_password = secrets.compare_digest(credentials.password, "NotSoSecurePa$$")
-
-    if not (correct_username and correct_password):
-        response.status_code = status.HTTP_401_UNAUTHORIZED
-        return response
-
+def welcome_session(response: Response, format: str = None, session_token: str = Cookie(None)):
     print("token:", session_token)
 
     if (session_token is not None) and (session_token in app.access_tokens):
@@ -48,14 +40,7 @@ def welcome_session(response: Response, format: str = None, session_token: str =
 
 
 @app.get("/welcome_token")
-def welcome_token(response: Response, session_token: str, format: str = None,
-                  credentials: HTTPBasicCredentials = Depends(security)):
-    correct_username = secrets.compare_digest(credentials.username, "4dm1n")
-    correct_password = secrets.compare_digest(credentials.password, "NotSoSecurePa$$")
-
-    if not (correct_username and correct_password):
-        response.status_code = status.HTTP_401_UNAUTHORIZED
-        return response
+def welcome_token(response: Response, session_token: str, format: str = None):
 
     print("token:", session_token)
 
