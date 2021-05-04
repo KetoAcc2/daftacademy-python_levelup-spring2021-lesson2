@@ -74,12 +74,9 @@ def login_session(response: Response, credentials: HTTPBasicCredentials = Depend
         response.status_code = status.HTTP_401_UNAUTHORIZED
         return response
 
-    app.secret_key += str(app.key_counter)
     session_token = sha256(f"{correct_username}{correct_password}{app.secret_key}".encode()).hexdigest()
     app.access_tokens.append(session_token)
     response.set_cookie(key="token", value=session_token)
-
-    app.key_counter += 1
 
     return response
 
@@ -91,12 +88,9 @@ def login_token(*, response: Response, credentials: HTTPBasicCredentials = Depen
     correct_password = secrets.compare_digest(credentials.password, "NotSoSecurePa$$")
 
     if correct_username and correct_password:
-        app.secret_key += str(app.key_counter)
         preparing_session_token = sha256(f"{correct_username}{correct_password}{app.secret_key}".encode()).hexdigest()
         app.access_tokens.append(preparing_session_token)
         response.set_cookie(key="token", value=preparing_session_token)
-
-        app.key_counter += 1
 
         response.status_code = status.HTTP_201_CREATED
         return {"token": preparing_session_token}
