@@ -11,16 +11,20 @@ app = FastAPI()
 
 app.secret_key = "very constant and random secret, best 64+ characters, I love elephants and bananas"
 app.key_counter = 1
-app.access_tokens = []
+app.access_tokens_session = []
+app.access_tokens_token = []
+
+app.token_counter = 0
 
 security = HTTPBasic()
 
 
 @app.delete("/logout_session")
 def logout_session(response: Response, token: str = Cookie(None), format: str = None):
-    if (token is not None) and (token in app.access_tokens):
+    print("token:", token)
+    if (token is not None) and (token in app.access_tokens_session):
         response.status_code = status.HTTP_200_OK
-        app.access_tokens.remove(token)
+        app.access_tokens_session.remove(token)
 
         return RedirectResponse(url=f"/logged_out?format={format}", status_code=302)
     else:
@@ -30,11 +34,12 @@ def logout_session(response: Response, token: str = Cookie(None), format: str = 
 
 @app.delete("/logout_token")
 def logout_token(response: Response, token: str = "", format: str = None):
-    if (token is not None) and (token in app.access_tokens):
+    print("token:", token)
+    if (token is not None) and (token in app.access_tokens_session):
         response.status_code = status.HTTP_200_OK
-        app.access_tokens.remove(token)
+        app.access_tokens_session.remove(token)
 
-        return RedirectResponse(url=f"/logged_out?format={format}", status_code=302)
+        return RedirectResponse(url=f"/logged_out?format={format}", status_code=303)
     else:
         response.status_code = status.HTTP_401_UNAUTHORIZED
         return response
@@ -55,7 +60,7 @@ def logged_out(format: str = ""):
 def welcome_session(response: Response, format: str = None, token: str = Cookie(None)):
     print("token:", token)
 
-    if (token is not None) and (token in app.access_tokens):
+    if (token is not None) and (token in app.access_tokens_session):
         response.status_code = status.HTTP_200_OK
 
         if format == 'json':
@@ -75,7 +80,7 @@ def welcome_session(response: Response, format: str = None, token: str = Cookie(
 def welcome_token(response: Response, token: str = None, format: str = None):
     print("token:", token)
 
-    if (token is not None) and (token in app.access_tokens):
+    if (token is not None) and (token in app.access_tokens_token):
         response.status_code = status.HTTP_200_OK
 
         if format == 'json':
@@ -105,8 +110,9 @@ def login_session(response: Response, credentials: HTTPBasicCredentials = Depend
         response.status_code = status.HTTP_401_UNAUTHORIZED
         return response
 
+    app.token_counter += 1
     session_token = sha256(f"{correct_username}{correct_password}{app.secret_key}".encode()).hexdigest()
-    app.access_tokens.append(session_token)
+    app.access_tokens_session.append(session_token)
     response.set_cookie(key="token", value=session_token)
 
     return response
@@ -119,14 +125,15 @@ def login_token(*, response: Response, credentials: HTTPBasicCredentials = Depen
     correct_password = secrets.compare_digest(credentials.password, "NotSoSecurePa$$")
 
     if correct_username and correct_password:
+        app.token_counter += 1
         preparing_session_token = sha256(f"{correct_username}{correct_password}{app.secret_key}".encode()).hexdigest()
-        app.access_tokens.append(preparing_session_token)
+        app.access_tokens_token.append(preparing_session_token)
         response.set_cookie(key="token", value=preparing_session_token)
 
         response.status_code = status.HTTP_201_CREATED
         return {"token": preparing_session_token}
 
-    if session_token in app.access_tokens:
+    if session_token in app.access_tokens_token:
         response.status_code = status.HTTP_201_CREATED
         return {"token": session_token}
     else:
