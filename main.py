@@ -17,10 +17,10 @@ security = HTTPBasic()
 
 
 @app.get("/welcome_session")
-def welcome_session(response: Response, format: str = None, session_token: str = Cookie(None)):
-    print("token:", session_token)
+def welcome_session(response: Response, format: str = None, token: str = Cookie(None)):
+    print("token:", token)
 
-    if (session_token is not None) and (session_token in app.access_tokens):
+    if (token is not None) and (token in app.access_tokens):
         response.status_code = status.HTTP_200_OK
 
         if format == 'json':
@@ -40,11 +40,11 @@ def welcome_session(response: Response, format: str = None, session_token: str =
 
 
 @app.get("/welcome_token")
-def welcome_token(response: Response, session_token: str, format: str = None):
+def welcome_token(response: Response, token: str = None, format: str = None):
 
-    print("token:", session_token)
+    print("token:", token)
 
-    if (session_token is not None) and (session_token in app.access_tokens):
+    if (token is not None) and (token in app.access_tokens):
         response.status_code = status.HTTP_200_OK
 
         if format == 'json':
