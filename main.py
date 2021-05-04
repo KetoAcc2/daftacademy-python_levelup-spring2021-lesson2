@@ -77,7 +77,7 @@ def login_session(response: Response, credentials: HTTPBasicCredentials = Depend
     app.secret_key += str(app.key_counter)
     session_token = sha256(f"{correct_username}{correct_password}{app.secret_key}".encode()).hexdigest()
     app.access_tokens.append(session_token)
-    response.set_cookie(key="session_token", value=session_token)
+    response.set_cookie(key="token", value=session_token)
 
     app.key_counter += 1
 
@@ -94,7 +94,7 @@ def login_token(*, response: Response, credentials: HTTPBasicCredentials = Depen
         app.secret_key += str(app.key_counter)
         preparing_session_token = sha256(f"{correct_username}{correct_password}{app.secret_key}".encode()).hexdigest()
         app.access_tokens.append(preparing_session_token)
-        response.set_cookie(key="session_token", value=preparing_session_token)
+        response.set_cookie(key="token", value=preparing_session_token)
 
         app.key_counter += 1
 
