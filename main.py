@@ -1,10 +1,11 @@
 import secrets
-from hashlib import sha256
+from typing import List
 
 import uvicorn
+from hashlib import sha256
 from fastapi import FastAPI, Response, status, Request, Depends, Cookie
-from pydantic import BaseModel
 from fastapi.security import HTTPBasic, HTTPBasicCredentials
+from starlette.responses import HTMLResponse
 
 app = FastAPI()
 
@@ -14,12 +15,71 @@ app.access_tokens = []
 
 security = HTTPBasic()
 
-cheat_counter = 0
+
+@app.get("/welcome_session")
+def welcome_session(response: Response, format: str = None, session_token: str = Cookie(None),
+                    credentials: HTTPBasicCredentials = Depends(security)):
+    correct_username = secrets.compare_digest(credentials.username, "4dm1n")
+    correct_password = secrets.compare_digest(credentials.password, "NotSoSecurePa$$")
+
+    if not (correct_username and correct_password):
+        response.status_code = status.HTTP_401_UNAUTHORIZED
+        return response
+
+    print("token:", session_token)
+
+    if (session_token is not None) and (session_token in app.access_tokens):
+        response.status_code = status.HTTP_200_OK
+
+        if format == 'json':
+            response.media_type = 'json'
+            return {"message": "Welcome!"}
+        else:
+            if format == 'html':
+                response.media_type = 'html'
+                return HTMLResponse("<h1>Welcome!</h1>", status_code=200, media_type='text/html')
+            else:
+                response.media_type = 'plain'
+                return Response("Welcome!", 200, media_type='text/plain')
+
+    else:
+        response.status_code = status.HTTP_401_UNAUTHORIZED
+        return response
+
+
+@app.get("/welcome_token")
+def welcome_token(response: Response, session_token: str, format: str = None,
+                  credentials: HTTPBasicCredentials = Depends(security)):
+    correct_username = secrets.compare_digest(credentials.username, "4dm1n")
+    correct_password = secrets.compare_digest(credentials.password, "NotSoSecurePa$$")
+
+    if not (correct_username and correct_password):
+        response.status_code = status.HTTP_401_UNAUTHORIZED
+        return response
+
+    print("token:", session_token)
+
+    if (session_token is not None) and (session_token in app.access_tokens):
+        response.status_code = status.HTTP_200_OK
+
+        if format == 'json':
+            response.media_type = 'json'
+            return {"message": "Welcome!"}
+        else:
+            if format == 'html':
+                response.media_type = 'html'
+                return HTMLResponse("<h1>Welcome!</h1>", status_code=200, media_type='text/html')
+            else:
+                response.media_type = 'plain'
+                return Response("Welcome!", 200, media_type='text/plain')
+
+    else:
+        response.status_code = status.HTTP_401_UNAUTHORIZED
+        return response
 
 
 @app.post("/login_session")
 def login_session(response: Response, credentials: HTTPBasicCredentials = Depends(security)):
-    global cheat_counter
     response.status_code = status.HTTP_201_CREATED
 
     correct_username = secrets.compare_digest(credentials.username, "4dm1n")
@@ -36,21 +96,12 @@ def login_session(response: Response, credentials: HTTPBasicCredentials = Depend
 
     app.key_counter += 1
 
-    cheat_counter += 1
-
     return response
 
 
 @app.post("/login_token")
-def login_session(*, response: Response, credentials: HTTPBasicCredentials = Depends(security),
-                  session_token: str = Cookie(None)):
-    global cheat_counter
-    cheat_counter += 1
-
-    if cheat_counter == 10:
-        response.status_code = status.HTTP_201_CREATED
-        return {"token": app.access_tokens[1]}
-
+def login_token(*, response: Response, credentials: HTTPBasicCredentials = Depends(security),
+                session_token: str = Cookie(None)):
     correct_username = secrets.compare_digest(credentials.username, "4dm1n")
     correct_password = secrets.compare_digest(credentials.password, "NotSoSecurePa$$")
 
