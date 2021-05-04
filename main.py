@@ -5,7 +5,7 @@ import uvicorn
 from hashlib import sha256
 from fastapi import FastAPI, Response, status, Request, Depends, Cookie
 from fastapi.security import HTTPBasic, HTTPBasicCredentials
-from starlette.responses import HTMLResponse
+from starlette.responses import HTMLResponse, RedirectResponse
 
 app = FastAPI()
 
@@ -16,6 +16,41 @@ app.access_tokens = []
 security = HTTPBasic()
 
 
+@app.delete("/logout_session")
+def logout_session(response: Response, token: str = Cookie(None), format: str = None):
+    if (token is not None) and (token in app.access_tokens):
+        response.status_code = status.HTTP_200_OK
+        app.access_tokens.remove(token)
+
+        return RedirectResponse(url=f"/logged_out?format={format}", status_code=302)
+    else:
+        response.status_code = status.HTTP_401_UNAUTHORIZED
+        return response
+
+
+@app.delete("/logout_token")
+def logout_token(response: Response, token: str = "", format: str = None):
+    if (token is not None) and (token in app.access_tokens):
+        response.status_code = status.HTTP_200_OK
+        app.access_tokens.remove(token)
+
+        return RedirectResponse(url=f"/logged_out?format={format}", status_code=302)
+    else:
+        response.status_code = status.HTTP_401_UNAUTHORIZED
+        return response
+
+
+@app.get("/logged_out")
+def logged_out(format: str = ""):
+    if format == 'json':
+        return {"message": "Logged out!"}
+    else:
+        if format == 'html':
+            return HTMLResponse("<h1>Logged out!</h1>", status_code=200, media_type='text/html')
+        else:
+            return Response("Logged out!", 200, media_type='text/plain')
+
+
 @app.get("/welcome_session")
 def welcome_session(response: Response, format: str = None, token: str = Cookie(None)):
     print("token:", token)
@@ -24,14 +59,11 @@ def welcome_session(response: Response, format: str = None, token: str = Cookie(
         response.status_code = status.HTTP_200_OK
 
         if format == 'json':
-            response.media_type = 'json'
             return {"message": "Welcome!"}
         else:
             if format == 'html':
-                response.media_type = 'html'
                 return HTMLResponse("<h1>Welcome!</h1>", status_code=200, media_type='text/html')
             else:
-                response.media_type = 'plain'
                 return Response("Welcome!", 200, media_type='text/plain')
 
     else:
@@ -41,7 +73,6 @@ def welcome_session(response: Response, format: str = None, token: str = Cookie(
 
 @app.get("/welcome_token")
 def welcome_token(response: Response, token: str = None, format: str = None):
-
     print("token:", token)
 
     if (token is not None) and (token in app.access_tokens):
